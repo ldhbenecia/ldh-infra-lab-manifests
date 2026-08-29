@@ -1,0 +1,35 @@
+image:
+  repository: msa/api-gateway
+  tag: "1.0"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 80
+  targetPort: 8000
+
+config:
+  SERVER_PORT: "8000"
+  GATEWAY_DISCOVERY_ENABLED: "true"
+  GATEWAY_DISCOVERY_LOWERCASE: "true"
+  KAFKA_BROKERS: "kafka-service:9092"
+
+resources:
+  requests:
+    cpu: "300m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+# gateway는 부팅이 느리므로 여유를 더 줌
+probes:
+  enabled: true
+  readinessPath: /actuator/health/readiness
+  livenessPath: /actuator/health/liveness
+  readinessInitialDelay: 30
+  livenessInitialDelay: 120
+
+serviceMonitor:
+  enabled: true
+
+serviceAccountName: msa-service-account

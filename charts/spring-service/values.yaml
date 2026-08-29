@@ -1,0 +1,48 @@
+replicaCount: 1
+
+image:
+  repository: ""          # 반드시 override
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8080
+  targetPort: 8080
+
+# 컨테이너 환경변수 (ConfigMap으로 주입)
+config: {}
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+# Spring Actuator 기반 probe
+probes:
+  enabled: true
+  readinessPath: /actuator/health/readiness
+  livenessPath: /actuator/health/liveness
+  readinessInitialDelay: 20
+  livenessInitialDelay: 60
+
+# 종료 유예
+terminationGracePeriodSeconds: 45
+preStopSleep: 5
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPU: 65
+
+serviceMonitor:
+  enabled: false
+  path: /actuator/prometheus
+  interval: 30s
+  releaseLabel: monitoring
+
+serviceAccountName: ""
+springProfile: k8s

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: spring-service
+description: Spring Boot 서비스용 공통 차트 (actuator probe, ServiceMonitor 지원)
+type: application
+version: 0.1.0
+appVersion: "1.0"
