@@ -46,3 +46,4 @@ serviceMonitor:
 
 serviceAccountName: ""
 springProfile: k8s
+
