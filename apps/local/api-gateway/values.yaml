@@ -33,3 +33,5 @@ serviceMonitor:
   enabled: true
 
 serviceAccountName: msa-service-account
+
+replicaCount: 2
