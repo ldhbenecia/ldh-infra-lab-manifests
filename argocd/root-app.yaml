@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
+    targetRevision: main
+    path: argocd/apps          # ← 이 디렉토리의 yaml들을 배포 대상으로
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd          # Application은 argocd 네임스페이스에 생성
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
