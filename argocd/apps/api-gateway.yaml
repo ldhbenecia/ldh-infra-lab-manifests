@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: api-gateway
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
+    targetRevision: main
+    path: charts/spring-service
+    helm:
+      valueFiles:
+        - ../../apps/local/api-gateway/values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true       # Git에서 지우면 클러스터에서도 삭제
+      selfHeal: true    # 손으로 바꾼 걸 Git 상태로 되돌림
+    syncOptions:
+      - CreateNamespace=true
