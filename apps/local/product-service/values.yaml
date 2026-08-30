@@ -1,18 +1,15 @@
 image:
-  repository: msa/product-service
-  tag: "1.0"
+  repository: ghcr.io/ldhbenecia/product-service
+  tag: "9bc924c"
   pullPolicy: IfNotPresent
-
 service:
   port: 8083
   targetPort: 8083
-
 config:
   DB_URL: "jdbc:h2:mem:productdb;DB_CLOSE_DELAY=-1"
   DB_USER: "sa"
   DB_PASSWORD: ""
   KAFKA_BROKERS: "kafka-service:9092"
-
 resources:
   requests:
     cpu: "400m"
@@ -20,15 +17,12 @@ resources:
   limits:
     cpu: "1000m"
     memory: "1Gi"
-
 probes:
   enabled: true
   readinessPath: /actuator/health/readiness
   livenessPath: /actuator/health/liveness
   readinessInitialDelay: 30
   livenessInitialDelay: 120
-
 serviceMonitor:
   enabled: true
-
 serviceAccountName: msa-service-account
