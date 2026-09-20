@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lab-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /user(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: user-service
+            port:
+              number: 8081
+      - path: /order(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: order-service
+            port:
+              number: 8082
+      - path: /product(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: product-service
+            port:
+              number: 8083
