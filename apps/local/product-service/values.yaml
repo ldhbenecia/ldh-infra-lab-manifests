@@ -19,8 +19,6 @@ resources:
     memory: "1Gi"
 probes:
   enabled: true
-  readinessPath: /actuator/health/readiness
-  livenessPath: /actuator/health/liveness
   readinessInitialDelay: 30
   livenessInitialDelay: 120
 serviceMonitor:

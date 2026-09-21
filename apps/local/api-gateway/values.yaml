@@ -24,8 +24,6 @@ resources:
 # gateway는 부팅이 느리므로 여유를 더 줌
 probes:
   enabled: true
-  readinessPath: /actuator/health/readiness
-  livenessPath: /actuator/health/liveness
   readinessInitialDelay: 30
   livenessInitialDelay: 120
 

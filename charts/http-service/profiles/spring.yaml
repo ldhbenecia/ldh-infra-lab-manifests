@@ -1,0 +1,17 @@
+# Spring Boot 공통 기본값. Application에서 앱 values보다 먼저 적용
+config:
+  SPRING_PROFILES_ACTIVE: k8s
+resources:
+  requests:
+    cpu: "200m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+probes:
+  readinessPath: /actuator/health/readiness
+  livenessPath: /actuator/health/liveness
+  readinessInitialDelay: 20
+  livenessInitialDelay: 60
+serviceMonitor:
+  path: /actuator/prometheus

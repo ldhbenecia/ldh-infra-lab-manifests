@@ -8,9 +8,10 @@ spec:
   source:
     repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
     targetRevision: main
-    path: charts/spring-service
+    path: charts/http-service
     helm:
       valueFiles:
+        - profiles/spring.yaml
         - ../../apps/local/product-service/values.yaml
   destination:
     server: https://kubernetes.default.svc

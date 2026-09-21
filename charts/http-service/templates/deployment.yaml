@@ -34,9 +34,6 @@ spec:
         - configMapRef:
             name: {{ .Release.Name }}-config
         {{- end }}
-        env:
-        - name: SPRING_PROFILES_ACTIVE
-          value: {{ .Values.springProfile | quote }}
         {{- if .Values.probes.enabled }}
         readinessProbe:
           httpGet:
