@@ -13,7 +13,7 @@ spec:
     helm:
       valueFiles:
         - profiles/spring.yaml
-        - ../../apps/local/api-gateway/values.yaml
+        - ../../apps/msa/api-gateway/values.yaml
 
   destination:
     server: https://kubernetes.default.svc

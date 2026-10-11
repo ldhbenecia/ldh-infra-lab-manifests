@@ -12,7 +12,7 @@ spec:
     helm:
       valueFiles:
         - profiles/spring.yaml
-        - ../../apps/local/product-service/values.yaml
+        - ../../apps/msa/product-service/values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: default
