@@ -29,10 +29,16 @@ spec:
           containerPort: {{ .Values.service.targetPort }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
-        {{- if .Values.config }}
+        {{- if or .Values.config .Values.existingSecret }}
         envFrom:
+        {{- if .Values.config }}
         - configMapRef:
             name: {{ .Release.Name }}-config
+        {{- end }}
+        {{- with .Values.existingSecret }}
+        - secretRef:
+            name: {{ . }}
+        {{- end }}
         {{- end }}
         {{- if .Values.probes.enabled }}
         readinessProbe:

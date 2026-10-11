@@ -7,6 +7,9 @@ service:
   port: 8080
   targetPort: 8080
 config: {}
+# 평문으로 둘 수 없는 값은 Git 밖에서 만든 Secret 이름만 받음
+# 비면 secretRef 자체가 렌더되지 않음
+existingSecret: ""
 resources:
   requests:
     cpu: "100m"
@@ -31,4 +34,11 @@ serviceMonitor:
   path: /metrics
   interval: 30s
   releaseLabel: monitoring
+ingress:
+  enabled: false
+  className: nginx
+  host: ""
+  # 경로를 명시해 /actuator 처럼 밖에 열면 안 되는 것이 섞이지 않게 함
+  paths: []
+  annotations: {}
 serviceAccountName: ""
