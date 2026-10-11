@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: morris-game-server
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
+    targetRevision: main
+    path: charts/http-service
+    helm:
+      valueFiles:
+        - profiles/spring.yaml
+        - ../../apps/morris/game-server/values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    # msa 와 네임스페이스를 가름
+    # api-gateway 의 쿠버네티스 디스커버리 Role 이 default 에만 걸려 있어
+    # 게임 서버가 게이트웨이 라우트로 자동 노출되는 일도 같이 막힘
+    namespace: morris
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
