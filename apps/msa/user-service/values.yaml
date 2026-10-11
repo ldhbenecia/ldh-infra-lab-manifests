@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/ldhbenecia/user-service
-  tag: "f17eeda"
+  tag: "f36958f"
   pullPolicy: IfNotPresent
 service:
   port: 8081
