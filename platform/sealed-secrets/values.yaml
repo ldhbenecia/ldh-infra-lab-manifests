@@ -1,0 +1,12 @@
+# 컨트롤러 이름을 고정함. 릴리스 이름이 바뀌어도 kubeseal 플래그가 안 깨짐
+#   kubeseal --controller-name sealed-secrets --controller-namespace kube-system
+fullnameOverride: sealed-secrets
+
+# 컨트롤러가 죽어 있는 동안에는 새 SealedSecret 이 Secret 으로 풀리지 않음
+# 이미 풀려 있는 Secret 은 그대로 남아 앱은 계속 뜸
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    memory: "128Mi"
