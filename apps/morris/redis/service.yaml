@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: morris-redis
+  labels:
+    app: morris-redis
+spec:
+  clusterIP: None
+  selector:
+    app: morris-redis
+  ports:
+  - name: redis
+    protocol: TCP
+    port: 6379
+    targetPort: redis

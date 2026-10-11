@@ -1,0 +1,64 @@
+# 게임 서버의 판 상태 원본. 캐시가 아니라서 날아가면 진행 중인 판이 전부 사라짐
+# 그래서 MySQL 과 같이 StatefulSet + PVC + AOF
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: morris-redis
+  labels:
+    app: morris-redis
+spec:
+  serviceName: morris-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: morris-redis
+  template:
+    metadata:
+      labels:
+        app: morris-redis
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: redis
+        image: redis:7.4-alpine
+        args:
+        # AOF everysec: 쓰기를 이어 붙이고 1초마다 디스크에 내림. 잃어도 최대 1초
+        - --appendonly
+        - "yes"
+        - --appendfsync
+        - everysec
+        # 컨테이너 limit(256Mi) 보다 낮게 잡아 cgroup 이 SIGKILL 하기 전에 Redis 가 먼저 쓰기를 거절하게 함
+        # 기본 정책(noeviction)이라 넘치면 에러를 돌려줌. 판 상태를 조용히 지우는 것보다 낫다
+        - --maxmemory
+        - 192mb
+        ports:
+        - name: redis
+          containerPort: 6379
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+          limits:
+            memory: "256Mi"
+        readinessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        livenessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        volumeMounts:
+        - name: data
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ReadWriteOnce]
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 1Gi

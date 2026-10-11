@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: morris-redis
+  namespace: argocd
+  annotations:
+    # MySQL 과 같은 웨이브. 둘 다 게임 서버 readiness 의 전제
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
+    targetRevision: main
+    path: apps/morris/redis
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: morris
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
