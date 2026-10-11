@@ -10,6 +10,9 @@ config:
   GATEWAY_DISCOVERY_ENABLED: "true"
   GATEWAY_DISCOVERY_LOWERCASE: "true"
   KAFKA_BROKERS: "kafka-service:9092"
+# TOKEN_SECRET 을 넣음 (k8s 프로파일이 기본값 없이 요구)
+# user-service 가 서명한 토큰을 같은 키로 검증하므로 둘이 같은 Secret 을 봄
+existingSecret: msa-jwt-secret
 resources:
   requests:
     cpu: "300m"
