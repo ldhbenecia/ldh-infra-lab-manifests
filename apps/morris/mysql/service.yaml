@@ -1,0 +1,18 @@
+# clusterIP: None — StatefulSet 의 serviceName 이 가리키는 헤드리스 서비스
+# DNS 가 로드밸런싱 VIP 대신 파드 IP 를 그대로 돌려줌
+# 복제본이 늘면 morris-mysql-0.morris-mysql 처럼 개별 파드를 지목할 수 있어야 함
+apiVersion: v1
+kind: Service
+metadata:
+  name: morris-mysql
+  labels:
+    app: morris-mysql
+spec:
+  clusterIP: None
+  selector:
+    app: morris-mysql
+  ports:
+  - name: mysql
+    protocol: TCP
+    port: 3306
+    targetPort: mysql

@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: morris-mysql
+  namespace: argocd
+  annotations:
+    # root 가 Application 들을 동기화할 때의 순서. 낮은 쪽이 먼저
+    # DB 가 먼저 떠야 게임 서버 readiness 가 통함
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
+    targetRevision: main
+    path: apps/morris/mysql
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: morris
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
