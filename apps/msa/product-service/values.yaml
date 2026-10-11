@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/ldhbenecia/product-service
-  tag: "4d37bd4"
+  tag: "aff5ee3"
   pullPolicy: IfNotPresent
 service:
   port: 8083
