@@ -203,8 +203,7 @@ root가 `argocd/apps/`의 Application들을 이 순서로 올린다. 낮은 수�
 | | 비고 |
 |---|---|
 | ArgoCD v3.5.3 | `kubectl apply --server-side --force-conflicts` 필수 (CRD 크기). 설치 URL은 버전 고정 |
-| ingress-nginx | helm install. `ingress-nginx` ns에 `istio-injection` 라벨을 붙이지 않는다 (클라이언트 IP가 127.0.0.6으로 바뀜) |
-| Istio (demo, mTLS PERMISSIVE) | `default` ns에 사이드카 주입 중 |
+| ingress-nginx | helm install |
 | metrics-server | `--kubelet-insecure-tls` |
 | kube-prometheus-stack | helm install, 릴리스 이름 `monitoring` |
 | `/etc/hosts` | `user.lab.local`, `order.lab.local`, `argocd.lab.local`, `morris.lab.local` → 127.0.0.1 |
@@ -220,3 +219,7 @@ root가 `argocd/apps/`의 Application들을 이 순서로 올린다. 낮은 수�
 | `docs/2026-10-11-morris-migration.md` | 게임 서버 이관, Sealed Secrets, msa CI 전환, 그 과정에서 터진 것들 |
 
 Helm 입문 실습(simple-app, web-service)은 태그 `phase4-helm-practice` 참고.
+
+Istio는 2026-10-18에 제거했다 (사이드카·iptables·mTLS PERMISSIVE/STRICT까지 실습). 다시 설치할 때 주의할 것:
+- 주입 라벨은 앱 네임스페이스에만. **ingress-nginx ns에 붙이면 nginx가 클라이언트 IP를 `127.0.0.6`으로 보게 된다** (IP 기반 레이트 리밋이 전부 한 카운터로 묶임)
+- 걷어낼 때 순서: 주입 라벨 제거 → 파드 재시작 → `istioctl proxy-status`가 비는지 확인 → `istioctl uninstall --purge`
