@@ -1,0 +1,19 @@
+# 옛 msa-playground-helm/kafka-chart 의 설정 그대로 + 힙 크기만 명시
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+data:
+  CLUSTER_ID: "3z9xN1AMRW2ZWmMU5f-xEQ"
+  KAFKA_PROCESS_ROLES: "broker,controller"
+  KAFKA_NODE_ID: "1"
+  KAFKA_CONTROLLER_QUORUM_VOTERS: "1@localhost:9093"
+  KAFKA_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
+  # 클라이언트에게 "다음부턴 이 주소로 와"라고 알려주는 주소
+  # 짧은 이름이라 같은 네임스페이스에서만 풀림 — 클라이언트(user, order)와 같은 ns 에 있어야 함
+  KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-service:9092"
+  KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+  KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+  # 기본값은 1G. 그대로 두면 컨테이너 limit 1Gi 안에 JVM 오버헤드가 안 들어감
+  KAFKA_HEAP_OPTS: "-Xms512m -Xmx512m"

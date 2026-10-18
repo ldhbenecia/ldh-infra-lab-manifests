@@ -1,0 +1,47 @@
+# user-service, order-service 가 쓰는 단일 브로커 (KRaft, ZooKeeper 없음)
+# 실습용이라 PVC 없음 — 재시작하면 토픽과 메시지가 비워짐
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-deployment
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  # 롤링이면 잠깐 브로커가 둘 뜨는데, 같은 node.id·cluster.id 로 각자 독립된 클러스터가 됨
+  # Service 가 둘 사이를 오가며 메시지가 갈라지므로 옛 파드를 먼저 내리고 새 파드를 올림
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+      - name: kafka
+        # latest 금지. latest 는 pullPolicy 기본값이 Always 라 재시작할 때마다 다른 버전이 받아질 수 있음
+        # 8.3.2 = 옮기기 전 클러스터에서 돌던 이미지와 다이제스트까지 같음
+        image: confluentinc/cp-kafka:8.3.2
+        ports:
+        - name: client
+          containerPort: 9092
+        - name: controller
+          containerPort: 9093
+        envFrom:
+        - configMapRef:
+            name: kafka-config
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "768Mi"
+          limits:
+            memory: "1Gi"
+        # 포트가 열려야 클라이언트가 붙을 수 있음
+        readinessProbe:
+          tcpSocket:
+            port: client
+          initialDelaySeconds: 15
+          periodSeconds: 10

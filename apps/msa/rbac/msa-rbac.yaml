@@ -1,0 +1,36 @@
+# msa 서비스들이 공유하는 ServiceAccount 와 권한
+#
+# 용도: Spring Cloud Gateway(api-gateway)의 쿠버네티스 서비스 디스커버리
+#   - services  : 어떤 서비스가 존재하는가
+#   - endpoints : 그 서비스 뒤에 어떤 파드 IP 가 있는가
+#   - pods      : 파드 상태 확인
+#
+# 차트가 아니라 별도 파일인 이유: 여러 릴리스가 같은 이름을 쓰므로 소유자가 하나여야 함
+# Role 이라 msa ns 안만 볼 수 있음 — 다른 ns(morris 등)의 서비스는 게이트웨이에 노출되지 않음
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: msa-service-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: msa-service-reader
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: msa-service-reader-binding
+subjects:
+- kind: ServiceAccount
+  name: msa-service-account
+  # subjects 의 namespace 는 destination 으로 채워지지 않음. 직접 적어야 함
+  namespace: msa
+roleRef:
+  kind: Role
+  name: msa-service-reader
+  apiGroup: rbac.authorization.k8s.io
