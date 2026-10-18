@@ -1,0 +1,29 @@
+# 클러스터 공용 플랫폼. 클러스터 범위 리소스를 만들 수 있는 유일한 프로젝트
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+  annotations:
+    # 이 프로젝트를 쓰는 Application 보다 먼저 있어야 함
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  description: 클러스터 공용 — 인그레스 규칙, RBAC, sealed-secrets 컨트롤러
+  sourceRepos:
+    - https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
+    - https://bitnami.github.io/sealed-secrets
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd        # argocd 인그레스
+    - server: https://kubernetes.default.svc
+      namespace: kube-system   # sealed-secrets 컨트롤러
+    - server: https://kubernetes.default.svc
+      namespace: default       # msa 인그레스·RBAC
+  # 명시한 것 외의 클러스터 범위 리소스는 거부됨
+  clusterResourceWhitelist:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition   # SealedSecret CRD
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding

@@ -4,7 +4,7 @@ metadata:
   name: platform-ingress
   namespace: argocd
 spec:
-  project: default
+  project: platform
   source:
     repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
     targetRevision: main

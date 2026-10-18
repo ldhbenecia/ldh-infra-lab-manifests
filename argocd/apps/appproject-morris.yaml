@@ -1,0 +1,18 @@
+# 나인멘스모리스 게임 서버. morris ns 밖으로는 배포 불가
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: morris
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  description: 나인멘스모리스 — game-server, MySQL, Redis
+  sourceRepos:
+    - https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: morris
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

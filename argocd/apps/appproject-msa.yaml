@@ -1,0 +1,19 @@
+# msa 플레이그라운드. default ns 밖으로는 배포 불가
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: msa
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  description: msa 플레이그라운드 — user / order / product-service, api-gateway
+  sourceRepos:
+    - https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: default
+  # 앱은 클러스터 범위 리소스를 만들 일이 없음. CreateNamespace 때문에 Namespace 만 허용
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

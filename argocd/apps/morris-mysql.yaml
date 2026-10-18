@@ -8,7 +8,7 @@ metadata:
     # DB 가 먼저 떠야 게임 서버 readiness 가 통함
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  project: default
+  project: morris
 
   source:
     repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git

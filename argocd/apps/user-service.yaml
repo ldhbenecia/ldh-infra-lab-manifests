@@ -4,7 +4,7 @@ metadata:
   name: user-service
   namespace: argocd
 spec:
-  project: default
+  project: msa
 
   source:
     repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
