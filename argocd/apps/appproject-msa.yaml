@@ -1,4 +1,4 @@
-# msa 플레이그라운드. default ns 밖으로는 배포 불가
+# msa 플레이그라운드. msa ns 밖으로는 배포 불가
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
@@ -11,9 +11,6 @@ spec:
   sourceRepos:
     - https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
   destinations:
-    # 이전 중: default → msa. B 단계가 끝나면 default 를 뺀다
-    - server: https://kubernetes.default.svc
-      namespace: default
     - server: https://kubernetes.default.svc
       namespace: msa
   # 앱은 클러스터 범위 리소스를 만들 일이 없음. CreateNamespace 때문에 Namespace 만 허용
