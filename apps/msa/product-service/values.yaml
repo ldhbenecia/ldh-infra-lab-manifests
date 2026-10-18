@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/ldhbenecia/product-service
-  tag: "sha-2b1e032"
+  tag: "sha-e665580"
   pullPolicy: IfNotPresent
 service:
   port: 8083
