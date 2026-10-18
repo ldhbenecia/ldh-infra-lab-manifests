@@ -56,7 +56,7 @@ apps/
 │   ├── <앱>/              차트에 넣는 values (user / order / product-service, api-gateway)
 │   ├── kafka/             단일 브로커 (직접 작성, 8.3.2 고정)
 │   ├── rbac/              api-gateway 디스커버리용 ServiceAccount + Role
-│   ├── ingress/           user.lab.local, order.lab.local, /user /order /product
+│   ├── ingress/           msa.lab.local → api-gateway (외부 입구는 gateway 하나)
 │   └── secrets/           JWT SealedSecret (user·gateway 공유)
 └── morris/
     ├── game-server/       차트에 넣는 values
@@ -238,7 +238,7 @@ root가 `argocd/apps/`의 오브젝트들을 이 순서로 올린다. 낮은 수
 | ingress-nginx | helm install |
 | metrics-server | `--kubelet-insecure-tls` |
 | kube-prometheus-stack | helm install, 릴리스 이름 `monitoring` |
-| `/etc/hosts` | `user.lab.local`, `order.lab.local`, `argocd.lab.local`, `morris.lab.local` → 127.0.0.1 |
+| `/etc/hosts` | `msa.lab.local`, `argocd.lab.local`, `morris.lab.local` → 127.0.0.1 |
 | sealed-secrets 사설키 | 백업본을 먼저 apply한 뒤 컨트롤러 재시작 |
 
 ---
