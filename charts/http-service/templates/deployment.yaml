@@ -15,6 +15,13 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      {{- if .Values.config }}
+      annotations:
+        # ConfigMap 내용의 해시. 값이 바뀌면 해시가 바뀌고 → 파드 템플릿이 바뀐 것으로 보여 롤링 재시작
+        # envFrom 은 컨테이너 시작 때 한 번만 읽기 때문에 이게 없으면 새 값이 반영 안 됨
+        # Secret 은 차트 밖(SealedSecret)에서 만들어져 여기서 해시를 못 냄 → 필요하면 Reloader
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- end }}
     spec:
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       {{- with .Values.serviceAccountName }}
