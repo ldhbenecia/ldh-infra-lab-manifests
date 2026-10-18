@@ -7,8 +7,6 @@ service:
   targetPort: 8083
 config:
   DB_URL: "jdbc:h2:mem:productdb;DB_CLOSE_DELAY=-1"
-  DB_USER: "sa"
-  DB_PASSWORD: ""
   KAFKA_BROKERS: "kafka-service:9092"
 resources:
   requests:
