@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: msa-ingress
+  namespace: argocd
+spec:
+  project: msa
+
+  # user.lab.local / order.lab.local (호스트 분기), /user /order /product (경로 분기)
+  # Ingress 는 같은 ns 의 Service 만 가리킬 수 있어서 msa 앱과 같은 ns 에 둠
+  source:
+    repoURL: https://github.com/ldhbenecia/ldh-infra-lab-manifests.git
+    targetRevision: main
+    path: apps/msa/ingress
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: msa
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

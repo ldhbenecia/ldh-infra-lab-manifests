@@ -15,7 +15,7 @@ spec:
         - ../../apps/msa/product-service/values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: default
+    namespace: msa
   syncPolicy:
     automated:
       prune: true
