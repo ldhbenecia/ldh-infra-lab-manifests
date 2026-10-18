@@ -9,11 +9,13 @@ ArgoCD가 이 레포의 `main`을 감시하며 클러스터를 이 상태로 맞
 
 | 네임스페이스 | 프로젝트 | 구성 |
 |---|---|---|
-| `default` | msa 플레이그라운드 | user / order / product-service, api-gateway (Spring Cloud) |
+| `msa` | msa 플레이그라운드 | user / order / product-service, api-gateway (Spring Cloud) + Kafka |
 | `morris` | 나인멘스모리스 게임 서버 | game-server + MySQL + Redis |
 | `kube-system` | 플랫폼 | sealed-secrets 컨트롤러 |
+| `argocd` | 플랫폼 | ArgoCD 자체 + 인그레스 |
+| `default` | (앱 없음) | kube-prometheus-stack만 — 부트스트랩, 추후 `monitoring` ns로 이전 |
 
-두 프로젝트는 서로 별개다. 네임스페이스가 갈려 있고, api-gateway의 쿠버네티스 디스커버리 Role이 `default`에만 걸려 있어 게임 서버가 게이트웨이에 노출되지 않는다.
+두 프로젝트는 서로 별개다. 네임스페이스가 갈려 있고, api-gateway의 쿠버네티스 디스커버리 Role이 `msa`에만 걸려 있어 게임 서버가 게이트웨이에 노출되지 않는다. 이 경계는 아래 **AppProject**가 ArgoCD 수준에서 강제한다.
 
 ## 배포 흐름
 
@@ -44,17 +46,24 @@ CI는 fine-grained 토큰 `MANIFESTS_TOKEN`(이 레포 하나, Contents 쓰기�
 ```
 argocd/
 ├── root-app.yaml          App of Apps 루트. 이것 하나만 수동 apply
-└── apps/                  Application 정의. 파일 추가 = 앱 추가
+└── apps/                  root 가 배포하는 ArgoCD 오브젝트
+    ├── appproject-*.yaml    AppProject 3개 (platform / msa / morris)
+    └── *.yaml               Application. 파일 추가 = 앱 추가
 charts/
 └── http-service/          직접 만든 공통 차트 (HTTP 포트를 받는 장기 실행 서비스)
 apps/
-├── msa/<앱>/              앱별 배포 입력
-├── msa/secrets/           msa 공유 SealedSecret
-├── morris/<앱>/
-└── morris/secrets/
-platform/
-├── ingress/               *.lab.local 인그레스 (default, argocd ns)
-├── rbac/                  msa ServiceAccount + Role
+├── msa/
+│   ├── <앱>/              차트에 넣는 values (user / order / product-service, api-gateway)
+│   ├── kafka/             단일 브로커 (직접 작성, 8.3.2 고정)
+│   ├── rbac/              api-gateway 디스커버리용 ServiceAccount + Role
+│   ├── ingress/           user.lab.local, order.lab.local, /user /order /product
+│   └── secrets/           JWT SealedSecret (user·gateway 공유)
+└── morris/
+    ├── game-server/       차트에 넣는 values
+    ├── mysql/  redis/     StatefulSet 직접 작성
+    └── secrets/
+platform/                  클러스터 공용만
+├── ingress/               argocd.lab.local
 └── sealed-secrets/        외부 차트에 넘기는 values
 docs/                      학습 기록
 ```
@@ -65,7 +74,11 @@ docs/                      학습 기록
 |---|---|---|
 | msa 4개, game-server | `http-service` 차트 + `values.yaml` | 구조가 같은 HTTP 서비스 |
 | morris mysql, redis | StatefulSet 직접 작성 | 파드와 디스크가 1:1. Deployment 전제인 차트와 구조가 다름 |
+| msa kafka | Deployment 직접 작성 | 단일 브로커라 `Recreate` 필요, HTTP 서비스가 아님 |
+| `*/rbac`, `*/ingress` | 직접 작성 | 여러 앱이 공유하는 리소스라 소유자가 하나여야 함 |
 | `*/secrets` | SealedSecret 직접 | 차트가 아니라 봉인된 Secret |
+
+**프로젝트 전용이면 `apps/<프로젝트>/`, 클러스터 공용이면 `platform/`.** msa 인그레스·RBAC는 원래 `platform/`에 있었지만 msa 전용이라 옮겼다.
 
 ---
 
@@ -150,12 +163,12 @@ kubectl create secret generic <이름> -n <ns> \
 ```
 
 - `--dry-run=client` 파이프라 평문이 디스크에 안 남는다
-- 암호문은 **ns + 이름에 묶인다.** 다른 곳에 apply하면 복호화가 거부된다
+- 암호문은 **ns + 이름에 묶인다.** 다른 곳에 apply하면 복호화가 거부된다 — 앱을 다른 ns로 옮기면 **다시 봉인**해야 한다
 - 비밀이 아닌 값(URL, 사용자명, 만료 시간)은 Secret이 아니라 values의 `config:`로
 
 | Secret | ns | 쓰는 곳 |
 |---|---|---|
-| `msa-jwt-secret` | default | user-service(서명), api-gateway(검증) — **반드시 같은 키** |
+| `msa-jwt-secret` | msa | user-service(서명), api-gateway(검증) — **반드시 같은 키** |
 | `morris-mysql-secret` | morris | MySQL |
 | `morris-game-server-secret` | morris | game-server (DB 비밀번호, JWT, 카카오) |
 
@@ -169,14 +182,33 @@ kubectl get secret -n kube-system -l sealedsecrets.bitnami.com/sealed-secrets-ke
 
 ---
 
+## AppProject — 프로젝트 경계
+
+모든 Application은 셋 중 하나에 속한다. 프로젝트가 허용하지 않은 ns나 리소스는 **ArgoCD가 sync를 거부**한다.
+
+| AppProject | 배포 허용 ns | 클러스터 범위 리소스 | 소속 Application |
+|---|---|---|---|
+| `platform` | `argocd`, `kube-system` | CRD, ClusterRole, ClusterRoleBinding | platform-ingress, platform-sealed-secrets |
+| `msa` | `msa` | Namespace만 | user / order / product-service, api-gateway, msa-kafka, msa-rbac, msa-ingress, msa-secrets |
+| `morris` | `morris` | Namespace만 | morris-game-server, morris-mysql, morris-redis, morris-secrets |
+
+- `root`만 `default` 프로젝트다. Application·AppProject를 `argocd` ns에 만드는 관리자라서
+- 클러스터 범위 리소스는 화이트리스트 — 적지 않은 건 전부 금지
+- 거부되면 sync만 안 될 뿐 **이미 있는 리소스는 지워지지 않는다**
+- 경계를 고친 뒤에도 진행 중인 재시도는 옛 판정을 붙잡고 있다 → operation을 끊고 다시 sync
+- **ArgoCD를 거친 배포만 막는다.** `kubectl`로 직접 넣는 건 쿠버네티스 RBAC의 몫
+
+---
+
 ## 동기화 순서 (sync-wave)
 
-root가 `argocd/apps/`의 Application들을 이 순서로 올린다. 낮은 수가 먼저.
+root가 `argocd/apps/`의 오브젝트들을 이 순서로 올린다. 낮은 수가 먼저.
 
-| wave | Application | 이유 |
+| wave | 대상 | 이유 |
 |---|---|---|
-| -1 | platform-sealed-secrets | 컨트롤러가 없으면 SealedSecret이 안 풀림 |
-| 0 | morris-secrets, (지정 없는 것 전부) | |
+| -2 | AppProject 3개 | 프로젝트가 없으면 그걸 쓰는 Application이 에러 |
+| -1 | platform-sealed-secrets, msa-kafka, msa-rbac | 컨트롤러가 없으면 SealedSecret이 안 풀림 / msa ns를 먼저 만듦 |
+| 0 | morris-secrets, msa-secrets, (지정 없는 것 전부) | |
 | 1 | morris-mysql, morris-redis | game-server readiness의 전제 |
 | 2 | morris-game-server | |
 
@@ -187,7 +219,7 @@ root가 `argocd/apps/`의 Application들을 이 순서로 올린다. 낮은 수�
 1. 앱 레포 `application-k8s.yml`에 필요한 환경변수를 선언 (비밀은 기본값 없이)
 2. 비밀값이 있으면 `apps/<프로젝트>/secrets/`에 SealedSecret
 3. `apps/<프로젝트>/<앱>/values.yaml`
-4. `argocd/apps/<앱>.yaml` — 차트 경로와 valueFiles
+4. `argocd/apps/<앱>.yaml` — 차트 경로와 valueFiles, **`project:`와 그 프로젝트가 허용한 `destination.namespace`**
 5. `helm template`으로 렌더 확인
 6. 앱 레포 CI에 `MANIFESTS_TOKEN` 시크릿 + 태그 갱신 잡
 7. GHCR 패키지가 Public인지 확인 (Private이면 kubelet이 못 받음)
