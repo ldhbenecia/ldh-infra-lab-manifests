@@ -76,7 +76,7 @@ feature/redis-ha   main보다 6커밋 앞 + 미커밋 작업
 
 > **Q. RDS는 보통 쿠버에서 어떻게 관리함? 쿠버에서 관리 안 하는 게 일반적인가?**
 
-- 맞다. RDS는 **Terraform(클러스터 밖)**이 만들고, 쿠버네티스에는 **엔드포인트(ConfigMap) + 자격증명(Secret)** 두 줄만 들어온다
+- 맞다. RDS는 **Terraform**(클러스터 밖)이 만들고, 쿠버네티스에는 **엔드포인트(ConfigMap) + 자격증명(Secret)** 두 줄만 들어온다
 - 이유: ArgoCD는 쿠버네티스 API만 안다. RDS는 그 시야에 없다
 - 회사 구조로 대입하면 `Nudge-IaC`가 RDS를 만들고 `NudgeManifest`는 엔드포인트 문자열만 안다
 - ACK / Crossplane으로 RDS를 CRD로 선언할 수도 있지만, `prune: true`가 프로덕션 DB를 지울 수 있어서 보통 제외하거나 `deletionPolicy: Orphan`

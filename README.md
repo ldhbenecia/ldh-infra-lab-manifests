@@ -84,7 +84,7 @@ docs/                      학습 기록
 
 ## Helm 차트란 — 이 레포 기준으로
 
-차트는 **"값을 넣으면 쿠버네티스 yaml이 나오는 템플릿 묶음"**이다. 같은 모양의 Deployment·Service를 서비스마다 복사해 쓰지 않으려고 쓴다.
+차트는 **값을 넣으면 쿠버네티스 YAML이 나오는 템플릿 묶음**이다. 같은 모양의 Deployment·Service를 서비스마다 복사해 쓰지 않으려고 쓴다.
 
 ```
 charts/http-service/
