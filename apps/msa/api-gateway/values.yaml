@@ -13,10 +13,11 @@ config:
 # TOKEN_SECRET 을 넣음 (k8s 프로파일이 기본값 없이 요구)
 # user-service 가 서명한 토큰을 같은 키로 검증하므로 둘이 같은 Secret 을 봄
 existingSecret: msa-jwt-secret
+# 실사용 약 210Mi (2026-10-25, 유휴 상태 kubectl top). 7.1 이후 p95 메트릭 보고 다시 조정
 resources:
   requests:
     cpu: "300m"
-    memory: "512Mi"
+    memory: "256Mi"
   limits:
     cpu: "1000m"
     memory: "1Gi"
