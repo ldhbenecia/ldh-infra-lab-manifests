@@ -20,7 +20,7 @@
 ### 학습 방식
 
 - 한 단계씩, 결과를 보고 나서 다음 단계 ("한번에 다 알려주지 마셈")
-- 회사 SRE 구조(NudgeIaC / NudgeManifest / GitHub Actions / ArgoCD)를 기준 아키텍처로 참고
+- 실무 레퍼런스 구조(IaC 레포 / 매니페스트 레포 / GitHub Actions / ArgoCD)를 기준 아키텍처로 참고
 
 ---
 
@@ -78,7 +78,7 @@ feature/redis-ha   main보다 6커밋 앞 + 미커밋 작업
 
 - 맞다. RDS는 **Terraform**(클러스터 밖)이 만들고, 쿠버네티스에는 **엔드포인트(ConfigMap) + 자격증명(Secret)** 두 줄만 들어온다
 - 이유: ArgoCD는 쿠버네티스 API만 안다. RDS는 그 시야에 없다
-- 회사 구조로 대입하면 `Nudge-IaC`가 RDS를 만들고 `NudgeManifest`는 엔드포인트 문자열만 안다
+- 레포 구조로 대입하면 IaC 레포(Terraform)가 RDS를 만들고 매니페스트 레포는 엔드포인트 문자열만 안다
 - ACK / Crossplane으로 RDS를 CRD로 선언할 수도 있지만, `prune: true`가 프로덕션 DB를 지울 수 있어서 보통 제외하거나 `deletionPolicy: Orphan`
 - k8s + RDS 고유 함정: **파드 수 × 커넥션 풀 크기가 `max_connections`를 넘는다** → RDS Proxy, 또는 풀 크기를 역산
 - **ExternalName Service**로 감싸면 앱은 환경과 무관하게 같은 이름(`morris-db`)만 본다
@@ -95,17 +95,17 @@ feature/redis-ha   main보다 6커밋 앞 + 미커밋 작업
 
 실무처럼 하려면 추가로 필요한 것: ArgoCD 웹훅, 배포 중 에러율 측정(k6), Argo Rollouts, **msa 이미지를 GHCR로**(로컬 이미지는 `docker prune` 한 번에 사라짐), 운영 숙제. 단일 노드로는 PDB·anti-affinity·노드 장애 복구가 재현 안 됨.
 
-> **Q. 회사 SRE 구조 문서 공유 (NudgeIaC / NudgeManifest / CI / CD)**
+> **Q. 실무 레퍼런스 구조와 비교 (IaC / 매니페스트 / CI / CD)**
 
 비교해서 **세 개를 바꿨다**:
 
-| | 회사 | 원래 계획 | 결정 |
+| | 레퍼런스 | 원래 계획 | 결정 |
 |---|---|---|---|
 | Secret | Sealed Secrets | `kubectl create secret` (Git 밖) | **Sealed Secrets로** |
 | 태그 | metadata-action, `sha-{commit}` | 수동 `cut -c1-7` | **metadata-action으로** |
 | 아키텍처 | arm64 단일 | amd64 + arm64 | **arm64 단일로** |
 
-내 쪽이 더 나은 것: App of Apps (회사는 Application을 로컬에서 수동 apply), values 기반 태그 교체.
+이 랩에서 추가로 한 것: App of Apps (Application 도 Git 으로 관리), values 기반 태그 교체.
 
 > **Q. api-gateway, user, order와 나인멘스모리스는 별개 프로젝트임**
 
@@ -146,7 +146,7 @@ git worktree add /tmp/manifests-before HEAD
 
 ### 3단계 — Sealed Secrets 컨트롤러
 
-**왜**: `kubectl create secret`은 "Git만으로 재현 가능"을 깬다. 회사도 이 방식. `kubeseal --controller-name sealed-secrets --controller-namespace kube-system`이 그대로 동작하도록 이름을 맞춤.
+**왜**: `kubectl create secret`은 "Git만으로 재현 가능"을 깬다. `kubeseal --controller-name sealed-secrets --controller-namespace kube-system`이 그대로 동작하도록 이름을 맞춤.
 
 > **Q. 이렇게 명령어로 하면 helm도 명령어로만 하게 되는 거 아닌가?**
 
@@ -179,7 +179,7 @@ git worktree add /tmp/manifests-before HEAD
 | `helm.releaseName` | ArgoCD → helm | 기본은 Application 이름. 리소스 이름이 바뀌므로 덮어씀 |
 | `$values/...` | multi-source | `ref: values`인 소스의 루트. **남의 차트에 내 values를 넘기는 장치** |
 | `ref: values` (path 없음) | multi-source | 렌더 대상이 아니라 참조용 |
-| `syncPolicy.automated` | ArgoCD | 없으면 수동 sync (회사 "대시보드에서 sync"가 이것일 수 있음) |
+| `syncPolicy.automated` | ArgoCD | 없으면 수동 sync (UI 에서 Sync 버튼) |
 | `fullnameOverride` (values.yaml) | **차트가 정함** | Bitnami 계열 `_helpers.tpl` 관례. ArgoCD·쿠버네티스와 무관 |
 
 > **Q. 우리 서비스는 직접 만들어서 path로 처리했는데 kubeseal은 외부 깃허브에 있어서 차트를 끌어온다는 거임? kubeseal은 암호화 관련?**
@@ -452,7 +452,7 @@ A(느림) 끝 → 태그 = A   ← 옛 커밋으로 되돌아감
 
 > **Q. 각 레포에서 수정 안 하고 여기서(매니페스트) 하는 이유는?**
 
-- **값**은 매니페스트에 있어야 한다: 앱 레포는 공개 / 같은 이미지·다른 환경 / 재빌드 불필요 / 회사도 이렇게
+- **값**은 매니페스트에 있어야 한다: 앱 레포는 공개 / 같은 이미지·다른 환경 / 재빌드 불필요
 - 그런데 이 방식만으로는 **요구사항이 숨는다.** `application-k8s.yml`을 읽어도 `TOKEN_SECRET`이 필요한지 알 수 없다
 - 이상적인 분담: **앱 레포 = 선언(필요한 환경변수 목록), 매니페스트 = 값**
 - 게임 서버 `application.yml`이 이미 그렇게 돼 있다(`${JWT_SECRET_KEY}` 기본값 없이 + 주석). 그래서 필수 변수를 바로 뽑을 수 있었다
@@ -482,7 +482,7 @@ A(느림) 끝 → 태그 = A   ← 옛 커밋으로 되돌아감
 
 | | 원본 | 키 교체 | 여러 클러스터 | 주로 |
 |---|---|---|---|---|
-| Sealed Secrets | Git | 재봉인 → 커밋 | 클러스터마다 재봉인 | 소규모 (회사 현재) |
+| Sealed Secrets | Git | 재봉인 → 커밋 | 클러스터마다 재봉인 | 소규모 |
 | ESO + Secrets Manager | 외부 | 값만 바꾸면 자동 동기화 | 같은 원본 참조 | AWS 쓰는 대부분 |
 | Vault 직접 주입 | 외부 | 동적 비밀 가능 | 동일 | 대규모·규제 |
 
