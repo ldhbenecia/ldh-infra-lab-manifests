@@ -1,0 +1,38 @@
+# 메트릭 저장소. Grafana 공식 차트 mimir-distributed (분산 모드), SeaweedFS(S3) 에 저장
+# 멀티소스: 차트는 Grafana 저장소, values·Secret 은 ldh-infra-lab-lgtm
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lgtm-mimir
+  namespace: argocd
+  annotations:
+    # 저장소(seaweedfs, 0) 다음
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: observability
+  sources:
+    # ① 차트 (외부 Helm 저장소). targetRevision = 차트 버전
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: mimir-distributed
+      targetRevision: 6.2.1
+      helm:
+        releaseName: mimir        # 리소스 이름이 mimir-distributor, mimir-gateway … 가 됨
+        valueFiles:
+          - $values/backend/mimir/values.yaml
+    # ② values 를 제공하는 레포 (ref 로 이름만 붙임)
+    - repoURL: https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
+      targetRevision: main
+      ref: values
+    # ③ S3 열쇠 SealedSecret (그냥 YAML)
+    - repoURL: https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
+      targetRevision: main
+      path: backend/mimir/secrets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

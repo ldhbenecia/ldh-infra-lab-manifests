@@ -11,6 +11,7 @@ spec:
   description: 관측 스택 — LGTM + Alloy
   sourceRepos:
     - https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
+    - https://grafana.github.io/helm-charts      # mimir-distributed (7.1)
   destinations:
     - server: https://kubernetes.default.svc
       namespace: monitoring
