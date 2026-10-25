@@ -1,0 +1,19 @@
+# 관측 스택 (ldh-infra-lab-lgtm 레포). monitoring ns 밖으로는 배포 불가
+# 출처 저장소·클러스터 리소스는 실제로 쓰게 될 때 하나씩 추가한다 (최소 권한)
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: observability
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  description: 관측 스택 — LGTM + Alloy
+  sourceRepos:
+    - https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: monitoring
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace          # CreateNamespace=true
