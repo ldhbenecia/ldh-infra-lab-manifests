@@ -1,0 +1,25 @@
+# S3 호환 오브젝트 스토리지. Mimir(7.1)·Loki(7.2)·Tempo(7.3) 의 저장소
+# 그냥 YAML 방식 (차트 없음): ldh-infra-lab-lgtm/backend/seaweedfs/
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lgtm-seaweedfs
+  namespace: argocd
+  annotations:
+    # 저장소가 먼저. Mimir 는 1
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: observability
+  source:
+    repoURL: https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
+    targetRevision: main
+    path: backend/seaweedfs
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
