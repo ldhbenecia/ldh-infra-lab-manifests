@@ -1,0 +1,35 @@
+# 화면. Grafana 차트 (grafana-community) + lgtm values
+# 2026 부터 Grafana 차트는 grafana/helm-charts 가 아니라 grafana-community/helm-charts 에서 배포됨
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lgtm-grafana
+  namespace: argocd
+  annotations:
+    # 저장소(mimir, 1) 다음
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: observability
+  sources:
+    - repoURL: https://grafana-community.github.io/helm-charts
+      chart: grafana
+      targetRevision: 14.0.1
+      helm:
+        releaseName: grafana
+        valueFiles:
+          - $values/grafana/values.yaml
+    - repoURL: https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
+      targetRevision: main
+      ref: values
+    - repoURL: https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
+      targetRevision: main
+      path: grafana/secrets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

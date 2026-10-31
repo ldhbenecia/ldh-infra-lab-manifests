@@ -12,6 +12,7 @@ spec:
   sourceRepos:
     - https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
     - https://grafana.github.io/helm-charts      # mimir-distributed (7.1)
+    - https://grafana-community.github.io/helm-charts   # grafana (7.1)
   destinations:
     - server: https://kubernetes.default.svc
       namespace: monitoring
