@@ -19,3 +19,9 @@ spec:
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace          # CreateNamespace=true
+    # Alloy(7.1): 모든 ns 의 ServiceMonitor·Service·Pod 를 읽어야 수집 대상을 찾는다
+    # 무엇을 읽을 수 있는지는 lgtm alloy/values.yaml 의 rbac 에서 최소로 제한
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
