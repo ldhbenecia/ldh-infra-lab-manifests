@@ -24,6 +24,9 @@ spec:
     - repoURL: https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
       targetRevision: main
       path: grafana/secrets
+    - repoURL: https://github.com/ldhbenecia/ldh-infra-lab-lgtm.git
+      targetRevision: main
+      path: grafana/dashboards     # kustomization.yaml → 대시보드 ConfigMap
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
