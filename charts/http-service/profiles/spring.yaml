@@ -1,6 +1,8 @@
 # Spring Boot 공통 기본값. Application에서 앱 values보다 먼저 적용
 config:
   SPRING_PROFILES_ACTIVE: k8s
+  # http_server_requests_seconds 에 _bucket 시계열을 추가 → histogram_quantile 로 p95/p99 계산 가능
+  MANAGEMENT_METRICS_DISTRIBUTION_PERCENTILESHISTOGRAM_HTTP_SERVER_REQUESTS: "true"
 resources:
   requests:
     cpu: "200m"
